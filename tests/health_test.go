@@ -21,6 +21,7 @@ func (m *MockDatabase) Create(value interface{}) *gorm.DB {
 }
 
 func TestHealthCheckHandler_Success(t *testing.T) {
+	t.Parallel()
 	mockDB := new(MockDatabase)
 	mockDB.On("Create", mock.AnythingOfType("*db.HealthCounter")).Return(&gorm.DB{})
 	handler := handlers.HealthCheckHandler(mockDB)
@@ -31,4 +32,30 @@ func TestHealthCheckHandler_Success(t *testing.T) {
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
 	mockDB.AssertExpectations(t)
+}
+
+func TestHealthCheckHandler_Failure(t *testing.T) {
+	t.Parallel()
+	mockDB := new(MockDatabase)
+	mockDB.On("Create", mock.AnythingOfType("*db.HealthCounter")).Return(&gorm.DB{Error: assert.AnError})
+	handler := handlers.HealthCheckHandler(mockDB)
+
+	req, _ := http.NewRequest("GET", "/healthz", nil)
+	resp := httptest.NewRecorder()
+
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusServiceUnavailable, resp.Code)
+	mockDB.AssertExpectations(t)
+}
+
+func TestHealthCheckHandler_405Failure(t *testing.T) {
+	t.Parallel()
+	mockDB := new(MockDatabase)
+	handler := handlers.HealthCheckHandler(mockDB)
+
+	req, _ := http.NewRequest("POST", "/healthz", nil)
+	resp := httptest.NewRecorder()
+
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusMethodNotAllowed, resp.Code)
 }
