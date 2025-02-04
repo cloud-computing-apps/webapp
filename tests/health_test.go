@@ -3,6 +3,7 @@ package handlers
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"webapp/api/handlers"
 
@@ -58,4 +59,26 @@ func TestHealthCheckHandler_405Failure(t *testing.T) {
 
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusMethodNotAllowed, resp.Code)
+}
+
+func TestHealthCheckHandler_ContentLen(t *testing.T) {
+	t.Parallel()
+	mockDB := new(MockDatabase)
+	handler := handlers.HealthCheckHandler(mockDB)
+	req, _ := http.NewRequest("GET", "/healthz", strings.NewReader("abc"))
+	resp := httptest.NewRecorder()
+
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
+}
+
+func TestHealthCheckHandler_QueryParam(t *testing.T) {
+	t.Parallel()
+	mockDB := new(MockDatabase)
+	handler := handlers.HealthCheckHandler(mockDB)
+	req, _ := http.NewRequest("GET", "/healthz?test", nil)
+	resp := httptest.NewRecorder()
+
+	handler.ServeHTTP(resp, req)
+	assert.Equal(t, http.StatusBadRequest, resp.Code)
 }
