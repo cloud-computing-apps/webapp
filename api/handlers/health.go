@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"gorm.io/gorm"
 	"net/http"
 	"time"
 	"webapp/db"
 )
 
-func HealthCheckHandler(dbConnection *gorm.DB) http.HandlerFunc {
+func HealthCheckHandler(dbConnection db.Database) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 		w.Header().Set("Content-Type", "application/json")
