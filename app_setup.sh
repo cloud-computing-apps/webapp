@@ -3,7 +3,7 @@
 # Load .env variables and export them
 if [ -f .env ]; then
     echo "Loading environment variables from .env"
-    export $(grep -v '^#' .env | xargs)
+    export "$(grep -v '^#' .env | xargs)"
 else
     echo "Error: .env file not found!"
     exit 1
@@ -31,7 +31,8 @@ wget https://go.dev/dl/go1.22.0.linux-amd64.tar.gz
 sudo rm -rf /usr/local/go
 sudo tar -C /usr/local -xzf go1.22.0.linux-amd64.tar.gz
 export PATH=$PATH:/usr/local/go/bin
-echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.bashrc
+echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.bashrc
+# shellcheck source=/dev/null
 source ~/.bashrc
 go version
 
@@ -56,22 +57,22 @@ unset PGPASSWORD
 
 # Create Linux group and user
 echo "###### Creating Linux group '$LINUX_GROUP' ######"
-sudo groupadd $LINUX_GROUP || echo "Group already exists."
+sudo groupadd "$LINUX_GROUP" || echo "Group already exists."
 
 echo "###### Creating Linux user '$LINUX_USER' #######"
-sudo useradd -m -g $LINUX_GROUP -s /bin/bash $LINUX_USER || echo "User already exists."
+sudo useradd -m -g "$LINUX_GROUP" -s /bin/bash "$LINUX_USER" || echo "User already exists."
 
 # Unzip Application
 echo "##### Creating /csye6225/ ######"
 mkdir /opt/csye6225
 
 echo "##### Unzipping #####"
-unzip -o *.zip -d /opt/csye6225/
+unzip -o ./*.zip -d /opt/csye6225/
 
 # Setting Permissions and Users
 
 echo "####### Setting users and user groups ######"
-sudo chown -R $LINUX_USER:$LINUX_GROUP /opt/csye6225/
+sudo chown -R "$LINUX_USER":"$LINUX_GROUP" /opt/csye6225/
 
 echo "####### Setting permissions ######"
 sudo chmod -R 755 /opt/csye6225/
@@ -79,14 +80,14 @@ sudo chmod -R 755 /opt/csye6225/
 echo "Setup complete!"
 
 # Starting Application
-
+# shellcheck source=/dev/null
 source ~/.bashrc
 go version
 
 echo "####### Downloading dependencies #####"
 APP_PATH=$(find /opt/csye6225/ -type d -name webapp)
 
-cd "$APP_PATH"
+cd "$APP_PATH" || exit
 go mod tidy
 
 echo "####### Starting Application #########"
