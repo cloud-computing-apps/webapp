@@ -3,7 +3,7 @@
 # Load .env variables and export them
 if [ -f .env ]; then
     echo "Loading environment variables from .env"
-    export "$(grep -v '^#' .env | xargs)"
+    export $(grep -v '^#' .env | xargs)
 else
     echo "Error: .env file not found!"
     exit 1
