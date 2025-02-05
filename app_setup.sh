@@ -1,13 +1,17 @@
 #!/bin/bash
 
-# Credentials
-DB_USER="postgres"
-DB_PASSWORD="postgres123"
-DB_NAME="webapp"
-DB_HOST="localhost"
-DB_PORT="5432"
-LINUX_GROUP="appgroup"
-LINUX_USER="appuser"
+# Load .env variables and export them
+if [ -f .env ]; then
+    echo "✅ Loading environment variables from .env..."
+    export $(grep -v '^#' .env | xargs)
+else
+    echo "❌ Error: .env file not found!"
+    exit 1
+fi
+
+# Verify that variables are loaded
+echo  "Database User: $DB_USER"
+echo "Database Name: $DB_NAME"
 
 # Update package list
 echo "######### Updating package list ###########"
