@@ -1,5 +1,5 @@
 # webapp
-### **📌 Shortened Introduction for README**
+
 The **Health Check API** monitors application instances, preventing traffic to unhealthy ones and enabling automatic recovery. With each successful check, a record is added to the database.
 
 To run this application on a VM do the following:
