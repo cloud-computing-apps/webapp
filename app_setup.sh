@@ -2,10 +2,10 @@
 
 # Load .env variables and export them
 if [ -f .env ]; then
-    echo "✅ Loading environment variables from .env..."
+    echo "Loading environment variables from .env"
     export $(grep -v '^#' .env | xargs)
 else
-    echo "❌ Error: .env file not found!"
+    echo "Error: .env file not found!"
     exit 1
 fi
 
@@ -82,12 +82,6 @@ echo "Setup complete!"
 
 source ~/.bashrc
 go version
-
-export DB_USER="postgres"
-export DB_PASSWORD="postgres123"
-export DB_NAME="webapp"
-export DB_HOST="localhost"
-export DB_PORT="5432"
 
 echo "####### Downloading dependencies #####"
 APP_PATH=$(find /opt/csye6225/ -type d -name webapp)
