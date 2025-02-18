@@ -1,0 +1,34 @@
+name: Go Test
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: 'go-test'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Setup Postgres'
+        run: |
+          sudo systemctl start postgresql
+          sudo systemctl enable postgresql
+          sudo -u postgres psql -c "CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD  '${{ secrets.DB_PASSWORD }}'"
+          sudo -u postgres psql -c "CREATE DATABASE ${{ secrets.DB_NAME }}"
+          sudo -u postgres psql -c "ALTER ROLE ${{ secrets.DB_USER }} SUPERUSER"
+          sudo systemctl restart postgresql
+
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23.5'
+      - name: Run Go Test
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+        run: |
+          go test -v ./...
