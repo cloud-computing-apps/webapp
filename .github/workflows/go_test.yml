@@ -15,9 +15,9 @@ jobs:
         run: |
           sudo systemctl start postgresql
           sudo systemctl enable postgresql
-          sudo -u postgres psql -c "CREATE USER ${{ secrets.DB_USER }} WITH PASSWORD  '${{ secrets.DB_PASSWORD }}'"
-          sudo -u postgres psql -c "CREATE DATABASE ${{ secrets.DB_NAME }}"
-          sudo -u postgres psql -c "ALTER ROLE ${{ secrets.DB_USER }} SUPERUSER"
+          sudo -u postgres psql -c "CREATE USER ${{ secrets.TEST_DB_USER }} WITH PASSWORD  '${{ secrets.TEST_DB_PASSWORD }}'"
+          sudo -u postgres psql -c "CREATE DATABASE ${{ secrets.TEST_DB_NAME }}"
+          sudo -u postgres psql -c "ALTER ROLE ${{ secrets.TEST_DB_USER }} SUPERUSER"
           sudo systemctl restart postgresql
 
       - uses: actions/checkout@v4
@@ -27,9 +27,10 @@ jobs:
           go-version: '1.23.5'
       - name: Run Go Test
         env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_NAME: ${{ secrets.DB_NAME }}
+          TEST_DB_HOST: ${{ secrets.TEST_DB_HOST }}
+          TEST_DB_USER: ${{ secrets.TEST_DB_USER }}
+          TEST_DB_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          TEST_DB_NAME: ${{ secrets.TEST_DB_NAME }}
+          TEST_DB_PORT: ${{ secrets.TEST_DB_PORT }}
         run: |
           go test -v ./...
