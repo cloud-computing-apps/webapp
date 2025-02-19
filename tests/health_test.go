@@ -1,8 +1,13 @@
 package handlers
 
 import (
+	"fmt"
+	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 	"webapp/api/handlers"
@@ -19,6 +24,28 @@ type MockDatabase struct {
 func (m *MockDatabase) Create(value interface{}) *gorm.DB {
 	args := m.Called(value)
 	return args.Get(0).(*gorm.DB)
+}
+
+func TestDBConnection(t *testing.T) {
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found. Using system environment variables.")
+	}
+	host := os.Getenv("TEST_DB_HOST")
+	user := os.Getenv("TEST_DB_USER")
+	password := os.Getenv("TEST_DB_PASSWORD")
+	dbName := os.Getenv("TEST_DB_NAME")
+	port := os.Getenv("TEST_DB_PORT")
+	dsn := fmt.Sprintf("host=" + host + " user=" + user + " password=" + password + " dbname=" + dbName + " port=" + port + " sslmode=disable")
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	assert.NoError(t, err, "Failed to connect to database")
+
+	sqlDB, err := db.DB()
+	assert.NoError(t, err, "Failed to retrieve database connection")
+
+	err = sqlDB.Ping()
+	assert.NoError(t, err, "Database connection is not alive")
 }
 
 func TestHealthCheckHandler_Success(t *testing.T) {
