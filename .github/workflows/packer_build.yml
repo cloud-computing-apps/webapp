@@ -1,0 +1,70 @@
+name: Packer Build
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: 'packer-build'
+    runs-on: ubuntu-latest
+    environment: dev
+
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+
+      - name: 'Setup Go'
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23.5'
+
+      - name: 'Install Packer'
+        uses: hashicorp/setup-packer@v2
+        with:
+          version: '1.12.0'
+
+      - name: 'Configure AWS CLI'
+        run: |
+          mkdir -p ~/.aws
+          echo "[dev]" > ~/.aws/credentials
+          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY }}" >> ~/.aws/credentials
+          echo "[dev]" > ~/.aws/config
+          echo "region=${{ secrets.AWS_REGION }}" >> ~/.aws/config
+
+      - name: 'Build Dependencies'
+        run: go mod tidy
+
+      - name: 'Build Go Binary'
+        run: GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o webapp main.go
+
+      - name: 'Copy Go Binary to Packer Directory'
+        run: cp ./webapp ./packer/
+
+      - name: 'Create .env file'
+        run: |
+          echo "${{ secrets.ENV_FILE_CONTENT }}" > ./packer/scripts/.env
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+         credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT}}'
+
+      - name: 'Packer Initialise'
+        run: packer init ./packer/webapp.pkr.hcl
+
+      - name: 'Packer Validate'
+        run: |
+          cd ./packer
+          packer validate .
+
+      - name: 'Packer Build'
+        run: |
+          cd ./packer
+          packer build .
+
+
+
+
+
