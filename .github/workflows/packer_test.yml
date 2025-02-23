@@ -30,5 +30,6 @@ jobs:
         run: |
           cd ./packer
           touch webapp
+          touch ./packer/scripts/.env
           packer validate .
-          rm -rf webapp
+          rm -rf webapp ./packer/scripts/.env
