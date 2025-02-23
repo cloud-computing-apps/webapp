@@ -33,3 +33,4 @@ jobs:
           cd ./packer
           touch webapp
           packer validate .
+          rm -rf webapp
