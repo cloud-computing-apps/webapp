@@ -1,0 +1,35 @@
+name: Packer Format and Validate
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: 'packer-validate'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Checkout Repository'
+        uses: actions/checkout@v4
+
+      - name: 'Install Packer'
+        run: |
+          curl -fsSL "https://releases.hashicorp.com/packer/1.12.0/packer_1.12.0_linux_amd64.zip" -o packer.zip
+          unzip packer.zip
+          sudo mv packer /usr/local/bin/
+          rm packer.zip
+
+      - name: 'Packer Initialise'
+        run: packer init ./packer/webapp.pkr.hcl
+
+      - name: 'Packer Format'
+        run: |
+          cd ./packer
+          packer fmt -check .
+
+      - name: 'Packer Validate'
+        run: |
+          cd ./packer
+          touch webapp
+          packer validate .

@@ -11,20 +11,13 @@ import (
 	"strings"
 	"testing"
 	"webapp/api/handlers"
+	"webapp/db"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"gorm.io/gorm"
 )
 
-type MockDatabase struct {
-	mock.Mock
-}
-
-func (m *MockDatabase) Create(value interface{}) *gorm.DB {
-	args := m.Called(value)
-	return args.Get(0).(*gorm.DB)
-}
+var mockDB *gorm.DB
 
 func TestDBConnection(t *testing.T) {
 	err := godotenv.Load()
@@ -46,12 +39,13 @@ func TestDBConnection(t *testing.T) {
 
 	err = sqlDB.Ping()
 	assert.NoError(t, err, "Database connection is not alive")
+	mockDB = db
 }
 
 func TestHealthCheckHandler_Success(t *testing.T) {
 	t.Parallel()
-	mockDB := new(MockDatabase)
-	mockDB.On("Create", mock.AnythingOfType("*db.HealthCounter")).Return(&gorm.DB{})
+	TestDBConnection(t)
+	_ = mockDB.AutoMigrate(&db.HealthCounter{})
 	handler := handlers.HealthCheckHandler(mockDB)
 
 	req, _ := http.NewRequest("GET", "/healthz", nil)
@@ -59,13 +53,12 @@ func TestHealthCheckHandler_Success(t *testing.T) {
 
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusOK, resp.Code)
-	mockDB.AssertExpectations(t)
 }
 
 func TestHealthCheckHandler_Failure(t *testing.T) {
 	t.Parallel()
-	mockDB := new(MockDatabase)
-	mockDB.On("Create", mock.AnythingOfType("*db.HealthCounter")).Return(&gorm.DB{Error: assert.AnError})
+	TestDBConnection(t)
+	mockDB.Exec("DROP TABLE health_counters;")
 	handler := handlers.HealthCheckHandler(mockDB)
 
 	req, _ := http.NewRequest("GET", "/healthz", nil)
@@ -73,12 +66,11 @@ func TestHealthCheckHandler_Failure(t *testing.T) {
 
 	handler.ServeHTTP(resp, req)
 	assert.Equal(t, http.StatusServiceUnavailable, resp.Code)
-	mockDB.AssertExpectations(t)
 }
 
 func TestHealthCheckHandler_405Failure(t *testing.T) {
 	t.Parallel()
-	mockDB := new(MockDatabase)
+	TestDBConnection(t)
 	handler := handlers.HealthCheckHandler(mockDB)
 
 	req, _ := http.NewRequest("POST", "/healthz", nil)
@@ -90,7 +82,7 @@ func TestHealthCheckHandler_405Failure(t *testing.T) {
 
 func TestHealthCheckHandler_ContentLen(t *testing.T) {
 	t.Parallel()
-	mockDB := new(MockDatabase)
+	TestDBConnection(t)
 	handler := handlers.HealthCheckHandler(mockDB)
 	req, _ := http.NewRequest("GET", "/healthz", strings.NewReader("abc"))
 	resp := httptest.NewRecorder()
@@ -101,7 +93,7 @@ func TestHealthCheckHandler_ContentLen(t *testing.T) {
 
 func TestHealthCheckHandler_QueryParam(t *testing.T) {
 	t.Parallel()
-	mockDB := new(MockDatabase)
+	TestDBConnection(t)
 	handler := handlers.HealthCheckHandler(mockDB)
 	req, _ := http.NewRequest("GET", "/healthz?test", nil)
 	resp := httptest.NewRecorder()
