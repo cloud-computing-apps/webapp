@@ -6,6 +6,7 @@ on:
 
 jobs:
   build:
+    if: ${{ github.event.repository.fork == false }}
     name: 'packer-build'
     runs-on: ubuntu-latest
     environment: dev
