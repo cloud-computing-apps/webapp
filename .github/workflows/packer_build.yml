@@ -83,6 +83,35 @@ jobs:
           cd ./packer
           packer build .
 
+      - name: 'Share image to Demo Account AWS'
+        run: |
+          IMAGE_ID=$(aws ec2 describe-images \
+              --profile dev \
+              --filters "Name=name,Values=webapp-*" \
+              --query "Images | sort_by(@, &CreationDate) | [-1].ImageId" \
+              --output text)
+          
+          echo "Latest AMI ID: $IMAGE_ID"
+          
+          aws ec2 modify-image-attribute \
+              --profile dev \
+              --image-id $IMAGE_ID  \
+              --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT }}}]"
+
+      - name: 'Set Up Google Cloud SDK'
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: 'Share image to Demo Account GCP'
+        run: |
+          IMAGE_GCP_ID=$(gcloud compute images list --project ${{ secrets.GCP_DEV_ACCOUNT }} --no-standard-images --sort-by="~creationTimestamp" --limit=1 --format="value(name)")
+          
+          echo "Latest Machine Image: $IMAGE_GCP_ID"
+          
+          gcloud compute images create $IMAGE_GCP_ID \
+          --source-image=$IMAGE_GCP_ID \
+          --source-image-project=${{ secrets.GCP_DEV_ACCOUNT }} \
+          --project=${{ secrets.GCP_DEMO_ACCOUNT }}
+          
 
 
 
