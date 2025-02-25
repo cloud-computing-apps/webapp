@@ -64,10 +64,10 @@ sudo useradd -m -g "$LINUX_GROUP" -s /bin/bash "$LINUX_USER" || echo "User alrea
 
 # Unzip Application
 echo "##### Creating /csye6225/ ######"
-mkdir /opt/csye6225
+sudo mkdir /opt/csye6225
 
 echo "##### Unzipping #####"
-unzip -o ./*.zip -d /opt/csye6225/
+sudo unzip -o ./*.zip -d /opt/csye6225/
 
 # Setting Permissions and Users
 
