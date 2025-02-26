@@ -4,7 +4,7 @@ source /tmp/load_env.sh
 
 # Install PostgreSQL and additional utilities
 echo "######### Installing PostgreSQL and additional packages ######"
-sudo apt install -y postgresql postgresql-contrib unzip curl wget git vim
+sudo apt install -y postgresql postgresql-contrib unzip curl wget vim
 
 # Enable and start PostgreSQL service
 echo "########### Enabling PostgreSQL service #########"
