@@ -11,6 +11,10 @@ sudo apt update -y
 echo "########## Upgrading installed packages #############"
 sudo apt upgrade -y
 
+echo "########## Uninstalling git #############"
+sudo apt-get purge -y git
+sudo apt-get autoremove -y
+
 # Create Linux group and user
 echo "###### Creating Linux group '$LINUX_GROUP' ######"
 sudo groupadd "$LINUX_GROUP" || echo "Group already exists."

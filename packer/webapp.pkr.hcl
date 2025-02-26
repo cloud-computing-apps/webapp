@@ -27,11 +27,9 @@ source "amazon-ebs" "ubuntu" {
     most_recent = true
   }
 
-  # AMI details
   ami_name   = "${var.image_name}-{{timestamp}}"
   ami_groups = []
 
-  # Enable delete on termination for security
   launch_block_device_mappings {
     device_name           = var.device_name
     delete_on_termination = true
