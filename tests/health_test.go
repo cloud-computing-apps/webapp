@@ -43,7 +43,6 @@ func TestDBConnection(t *testing.T) {
 }
 
 func TestHealthCheckHandler_Success(t *testing.T) {
-	t.Parallel()
 	TestDBConnection(t)
 	_ = mockDB.AutoMigrate(&db.HealthCounter{})
 	handler := handlers.HealthCheckHandler(mockDB)
@@ -56,7 +55,6 @@ func TestHealthCheckHandler_Success(t *testing.T) {
 }
 
 func TestHealthCheckHandler_Failure(t *testing.T) {
-	t.Parallel()
 	TestDBConnection(t)
 	mockDB.Exec("DROP TABLE health_counters;")
 	handler := handlers.HealthCheckHandler(mockDB)
@@ -69,7 +67,6 @@ func TestHealthCheckHandler_Failure(t *testing.T) {
 }
 
 func TestHealthCheckHandler_405Failure(t *testing.T) {
-	t.Parallel()
 	TestDBConnection(t)
 	handler := handlers.HealthCheckHandler(mockDB)
 
@@ -81,7 +78,6 @@ func TestHealthCheckHandler_405Failure(t *testing.T) {
 }
 
 func TestHealthCheckHandler_ContentLen(t *testing.T) {
-	t.Parallel()
 	TestDBConnection(t)
 	handler := handlers.HealthCheckHandler(mockDB)
 	req, _ := http.NewRequest("GET", "/healthz", strings.NewReader("abc"))
@@ -92,7 +88,6 @@ func TestHealthCheckHandler_ContentLen(t *testing.T) {
 }
 
 func TestHealthCheckHandler_QueryParam(t *testing.T) {
-	t.Parallel()
 	TestDBConnection(t)
 	handler := handlers.HealthCheckHandler(mockDB)
 	req, _ := http.NewRequest("GET", "/healthz?test", nil)
