@@ -17,6 +17,6 @@ To run this application on a VM do the following:
 - Copy the script, the zip and .env from your local path to the VM using scp
  
 `scp -i <key> ~/Path/To/.zip app_setup.sh  ubuntu@ec2-XX-XXX-XXX-XXX.compute-1.amazonaws.com:/remote/path/`
-- Run     `chmod +x app_setup.sh` to make the script executable
-- Run   `. app_setup.sh` to execute the script. This will start the application
+- Run `chmod +x app_setup.sh` to make the script executable
+- Run `. app_setup.sh` to execute the script. This will start the application
 - Use Postman or cURL to test the application by hitting `http://<vm_public_ip>:8080/healthz`
