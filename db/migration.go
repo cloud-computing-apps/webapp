@@ -6,7 +6,7 @@ import (
 )
 
 func InitDB(dbConnection *gorm.DB) {
-	err := dbConnection.AutoMigrate(&HealthCounter{})
+	err := dbConnection.AutoMigrate(&HealthCounter{}, &FileTable{})
 	if err != nil {
 		log.Fatalf("Failed to migrate database schema: %v", err)
 	}
