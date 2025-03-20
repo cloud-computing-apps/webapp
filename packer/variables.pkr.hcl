@@ -1,9 +1,3 @@
-variable "project_id" {
-  description = "The ID of the GCP project"
-  type        = string
-  default     = "dev-gcp-prjt"
-}
-
 variable "aws_zone" {
   description = "The AWS Zone"
   type        = string
@@ -14,12 +8,6 @@ variable "region" {
   description = "The Cloud Platform Region"
   type        = string
   default     = "us-east-1"
-}
-
-variable "gcp_region" {
-  description = "The Cloud Platform Region"
-  type        = string
-  default     = "us-east1"
 }
 
 variable "profile" {
@@ -52,18 +40,6 @@ variable "virt_type" {
   default     = "hvm"
 }
 
-variable "gcp_machine_type" {
-  description = "The GCP Compute Engine Type"
-  type        = string
-  default     = "e2-medium"
-}
-
-variable "gcp_zone" {
-  description = "The GCP Zone"
-  type        = string
-  default     = "us-east1-b"
-}
-
 variable "image_name" {
   description = "The Image Name"
   type        = string
@@ -80,12 +56,6 @@ variable "aws_ami_name" {
   description = "The AWS Amazon Machine Image Name"
   type        = string
   default     = "ubuntu/images/hvm-ssd-gp3/ubuntu-noble-24.04-amd64-server-20250115"
-}
-
-variable "vpc_gcp" {
-  description = "The Default VPC of GCP"
-  type        = string
-  default     = "default"
 }
 
 variable "aws_owner" {

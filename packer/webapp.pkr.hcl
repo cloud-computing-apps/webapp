@@ -4,10 +4,6 @@ packer {
       version = ">= 1.2.8"
       source  = "github.com/hashicorp/amazon"
     }
-    googlecompute = {
-      version = ">= 1.0.3"
-      source  = "github.com/hashicorp/googlecompute"
-    }
   }
 }
 
@@ -36,36 +32,11 @@ source "amazon-ebs" "ubuntu" {
   }
 }
 
-source "googlecompute" "gcp_ubuntu" {
-  project_id   = var.project_id
-  zone         = var.gcp_zone
-  ssh_username = var.ssh_username
-  machine_type = var.gcp_machine_type
-  network      = var.vpc_gcp
-  source_image = var.source_image
-  image_name   = "${var.image_name}-{{timestamp}}"
-  tags         = [var.tags.Name, var.tags.Environment]
-}
-
 build {
-  sources = ["source.amazon-ebs.ubuntu", "source.googlecompute.gcp_ubuntu"]
-
-  provisioner "file" {
-    source      = "scripts/.env"
-    destination = "/tmp/.env"
-  }
-
-  provisioner "file" {
-    source      = "scripts/load_env.sh"
-    destination = "/tmp/load_env.sh"
-  }
+  sources = ["source.amazon-ebs.ubuntu"]
 
   provisioner "shell" {
     script = "./scripts/user_group.sh"
-  }
-
-  provisioner "shell" {
-    script = "./scripts/install_postgres.sh"
   }
 
   provisioner "shell" {

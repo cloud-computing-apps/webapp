@@ -29,3 +29,5 @@ go.work.sum
 
 # Packer
 *.pkvars.hcl
+
+packer/webapp
