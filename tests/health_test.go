@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -17,7 +18,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var mockDB *gorm.DB
+var mockDB db.Database
 
 func TestDBConnection(t *testing.T) {
 	err := godotenv.Load()
@@ -30,21 +31,26 @@ func TestDBConnection(t *testing.T) {
 	dbName := os.Getenv("TEST_DB_NAME")
 	port := os.Getenv("TEST_DB_PORT")
 	dsn := fmt.Sprintf("host=" + host + " user=" + user + " password=" + password + " dbname=" + dbName + " port=" + port + " sslmode=disable")
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	mdb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	assert.NoError(t, err, "Failed to connect to database")
 
-	sqlDB, err := db.DB()
+	sqlDB, err := mdb.DB()
 	assert.NoError(t, err, "Failed to retrieve database connection")
 
 	err = sqlDB.Ping()
 	assert.NoError(t, err, "Database connection is not alive")
-	mockDB = db
+
+	err = mdb.AutoMigrate(&db.HealthCounter{})
+	assert.NoError(t, err, "Failed to run AutoMigrate for HealthCounter")
+
+	mockDB = &db.GormDatabase{DB: mdb}
 }
 
 func TestHealthCheckHandler_Success(t *testing.T) {
 	TestDBConnection(t)
-	_ = mockDB.AutoMigrate(&db.HealthCounter{})
+	ctx := context.Background()
+	_ = mockDB.Create(ctx, &db.HealthCounter{})
 	handler := handlers.HealthCheckHandler(mockDB)
 
 	req, _ := http.NewRequest("GET", "/healthz", nil)
@@ -56,7 +62,8 @@ func TestHealthCheckHandler_Success(t *testing.T) {
 
 func TestHealthCheckHandler_Failure(t *testing.T) {
 	TestDBConnection(t)
-	mockDB.Exec("DROP TABLE health_counters;")
+	gormDB := mockDB.(*db.GormDatabase).DB
+	gormDB.Exec("DROP TABLE health_counters;")
 	handler := handlers.HealthCheckHandler(mockDB)
 
 	req, _ := http.NewRequest("GET", "/healthz", nil)
