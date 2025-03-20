@@ -26,7 +26,7 @@ func DBConn() *gorm.DB {
 	dbname := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
-	dsn := "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbname + " port=" + port
+	dsn := "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbname + " port=" + port + " connect_timeout=5"
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
