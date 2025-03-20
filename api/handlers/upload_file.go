@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/google/uuid"
 	"io"
+	"log"
 	"net/http"
 	"time"
 	"webapp/db"
@@ -37,7 +38,7 @@ func UploadFileHandler(dbConnection db.Database, s3Client *s3.Client, bucketName
 		buf := new(bytes.Buffer)
 		_, err = io.Copy(buf, file)
 		if err != nil {
-			fmt.Printf("failed to read the file %s", err)
+			log.Println("failed to read the file", err)
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
@@ -48,7 +49,7 @@ func UploadFileHandler(dbConnection db.Database, s3Client *s3.Client, bucketName
 			Body:   bytes.NewReader(buf.Bytes()),
 		})
 		if err != nil {
-			fmt.Printf("failed to add file to s3 %s", err)
+			log.Println("failed to add file to s3", err)
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
@@ -63,7 +64,16 @@ func UploadFileHandler(dbConnection db.Database, s3Client *s3.Client, bucketName
 		}
 
 		if err := dbConnection.Create(&fileRecord); err != nil {
-			fmt.Printf("failed to create record %s", err)
+			log.Println("failed to create record", err)
+			_, err2 := s3Client.DeleteObject(context.TODO(), &s3.DeleteObjectInput{
+				Bucket: &bucketName,
+				Key:    &s3Key,
+			})
+			if err2 != nil {
+				log.Println("failed to delete file to s3", err2)
+				w.WriteHeader(http.StatusServiceUnavailable)
+				return
+			}
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}

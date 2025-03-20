@@ -62,15 +62,6 @@ jobs:
       - name: 'Copy Go Binary to Packer Directory'
         run: cp ./webapp ./packer/
 
-      - name: 'Create .env file'
-        run: |
-          echo "${{ secrets.ENV_FILE_CONTENT }}" > ./packer/scripts/.env
-
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-         credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT}}'
-
       - name: 'Packer Initialise'
         run: packer init ./packer/webapp.pkr.hcl
 
@@ -98,20 +89,6 @@ jobs:
               --profile dev \
               --image-id $IMAGE_ID  \
               --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT }}}]"
-
-      - name: 'Set Up Google Cloud SDK'
-        uses: google-github-actions/setup-gcloud@v2
-
-      - name: 'Share image to Demo Account GCP'
-        run: |
-          IMAGE_GCP_ID=$(gcloud compute images list --project ${{ secrets.GCP_DEV_ACCOUNT }} --no-standard-images --sort-by="~creationTimestamp" --limit=1 --format="value(name)")
-          
-          echo "Latest Machine Image: $IMAGE_GCP_ID"
-          
-          gcloud compute images create $IMAGE_GCP_ID \
-          --source-image=$IMAGE_GCP_ID \
-          --source-image-project=${{ secrets.GCP_DEV_ACCOUNT }} \
-          --project=${{ secrets.GCP_DEMO_ACCOUNT }}
           
 
 

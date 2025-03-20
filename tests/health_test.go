@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"fmt"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -49,8 +48,7 @@ func TestDBConnection(t *testing.T) {
 
 func TestHealthCheckHandler_Success(t *testing.T) {
 	TestDBConnection(t)
-	ctx := context.Background()
-	_ = mockDB.Create(ctx, &db.HealthCounter{})
+	_ = mockDB.Create(&db.HealthCounter{})
 	handler := handlers.HealthCheckHandler(mockDB)
 
 	req, _ := http.NewRequest("GET", "/healthz", nil)
