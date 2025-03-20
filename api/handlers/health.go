@@ -31,7 +31,7 @@ func HealthCheckHandler(dbConnection db.Database) http.HandlerFunc {
 			Datetime: time.Now().UTC(),
 		}
 
-		if err := dbConnection.Create(&healthCheck).Error; err != nil {
+		if err := dbConnection.Create(&healthCheck); err != nil {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}

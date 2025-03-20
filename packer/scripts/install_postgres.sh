@@ -1,6 +1,5 @@
 #!/bin/bash
 
-source /tmp/load_env.sh
 
 # Install PostgreSQL and additional utilities
 echo "######### Installing PostgreSQL and additional packages ######"

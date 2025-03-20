@@ -3,7 +3,7 @@ Description=Webapp Service
 After=network.target
 
 [Service]
-EnvironmentFile=/opt/csye6225/.env
+EnvironmentFile=/etc/environment
 ExecStart=/opt/csye6225/webapp
 Restart=always
 User=csye6225

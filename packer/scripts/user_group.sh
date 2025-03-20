@@ -1,8 +1,5 @@
 #!/bin/bash
 
-sudo chmod +x /tmp/load_env.sh
-source /tmp/load_env.sh
-
 # Update package list
 echo "######### Updating package list ###########"
 sudo apt update -y
@@ -16,8 +13,8 @@ sudo apt-get purge -y git
 sudo apt-get autoremove -y
 
 # Create Linux group and user
-echo "###### Creating Linux group '$LINUX_GROUP' ######"
-sudo groupadd "$LINUX_GROUP" || echo "Group already exists."
+echo "###### Creating Linux group csye6225 ######"
+sudo groupadd csye6225 || echo "Group already exists."
 
-echo "###### Creating Linux user '$LINUX_USER' #######"
-sudo useradd -m -g "$LINUX_GROUP" -s /usr/sbin/nologin "$LINUX_USER" || echo "User already exists."
+echo "###### Creating Linux user csye6225 #######"
+sudo useradd -m -g csye6225 -s /usr/sbin/nologin csye6225 || echo "User already exists."

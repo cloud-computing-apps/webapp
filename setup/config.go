@@ -26,7 +26,7 @@ func DBConn() *gorm.DB {
 	dbname := os.Getenv("DB_NAME")
 	port := os.Getenv("DB_PORT")
 
-	dsn := "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbname + " port=" + port + " sslmode=disable"
+	dsn := "host=" + host + " user=" + user + " password=" + password + " dbname=" + dbname + " port=" + port
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
@@ -47,9 +47,9 @@ func S3Conn() *s3.Client {
 		log.Fatalf("Failed to load AWS config: %v", err)
 	}
 
-	S3Bucket = os.Getenv("S3_BUCKET_NAME")
+	S3Bucket = os.Getenv("S3_BUCKET")
 	if S3Bucket == "" {
-		log.Fatalf("S3_BUCKET_NAME is not set in the environment")
+		log.Fatalf("S3_BUCKET is not set in the environment")
 	}
 
 	S3Client = s3.NewFromConfig(cfg)

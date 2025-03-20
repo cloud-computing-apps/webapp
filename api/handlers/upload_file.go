@@ -37,7 +37,8 @@ func UploadFileHandler(dbConnection db.Database, s3Client *s3.Client, bucketName
 		buf := new(bytes.Buffer)
 		_, err = io.Copy(buf, file)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Printf("failed to read the file %s", err)
+			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 
@@ -47,7 +48,8 @@ func UploadFileHandler(dbConnection db.Database, s3Client *s3.Client, bucketName
 			Body:   bytes.NewReader(buf.Bytes()),
 		})
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Printf("failed to add file to s3 %s", err)
+			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 
@@ -61,13 +63,14 @@ func UploadFileHandler(dbConnection db.Database, s3Client *s3.Client, bucketName
 		}
 
 		if err := dbConnection.Create(&fileRecord); err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			fmt.Printf("failed to create record %s", err)
+			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 
 		response, err := json.Marshal(fileRecord)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 

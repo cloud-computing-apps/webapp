@@ -18,13 +18,13 @@ func DeleteFileHandler(dbConnection *gorm.DB, s3Client *s3.Client, bucketName st
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 
 		if r.Method != http.MethodDelete {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}
 
 		id, err := uuid.Parse(fileID)
 		if err != nil {
-			http.Error(w, `{"error": "Invalid file ID format"}`, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
@@ -35,7 +35,6 @@ func DeleteFileHandler(dbConnection *gorm.DB, s3Client *s3.Client, bucketName st
 				w.WriteHeader(http.StatusNotFound)
 				return
 			}
-			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
@@ -45,12 +44,14 @@ func DeleteFileHandler(dbConnection *gorm.DB, s3Client *s3.Client, bucketName st
 			Bucket: &bucketName,
 			Key:    &s3Key,
 		}); err != nil {
-			http.Error(w, `{"error": "Failed to delete file from S3"}`, http.StatusInternalServerError)
+			fmt.Printf("failed to delete object %s", err)
+			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 
-		if err := dbConnection.Delete(&fileRecord).Error; err != nil {
-			http.Error(w, `{"error": "Failed to delete file from DB"}`, http.StatusInternalServerError)
+		if err := dbConnection.Delete(&fileRecord); err != nil {
+			fmt.Printf("failed to delete record %v", err)
+			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 

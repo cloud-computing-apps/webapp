@@ -23,7 +23,7 @@ func GetFileHandler(dbConnection *gorm.DB, fileID string) http.HandlerFunc {
 
 		id, err := uuid.Parse(fileID)
 		if err != nil {
-			http.Error(w, `{"error": "Invalid file ID format"}`, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
@@ -33,7 +33,7 @@ func GetFileHandler(dbConnection *gorm.DB, fileID string) http.HandlerFunc {
 				w.WriteHeader(http.StatusNotFound)
 				return
 			}
-			w.WriteHeader(http.StatusInternalServerError)
+			w.WriteHeader(http.StatusServiceUnavailable)
 			return
 		}
 
