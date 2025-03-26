@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/DataDog/datadog-go/statsd"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"gorm.io/gorm"
 	"net/http"
@@ -9,13 +10,13 @@ import (
 	"webapp/db"
 )
 
-func RegisterRoutes(dbConnection *gorm.DB, s3Client *s3.Client, bucketName string) http.Handler {
+func RegisterRoutes(dbConnection *gorm.DB, s3Client *s3.Client, bucketName string, client *statsd.Client) http.Handler {
 	r := http.NewServeMux()
 	dbInstance := &db.GormDatabase{DB: dbConnection}
 
-	r.HandleFunc("/healthz", handlers.HealthCheckHandler(dbInstance))
+	r.HandleFunc("/healthz", handlers.HealthCheckHandler(dbInstance, client))
 
-	r.HandleFunc("/v1/file", handlers.UploadFileHandler(dbInstance, s3Client, bucketName))
+	r.HandleFunc("/v1/file", handlers.UploadFileHandler(dbInstance, s3Client, bucketName, client))
 
 	r.HandleFunc("/v1/file/", func(w http.ResponseWriter, r *http.Request) {
 		fileID := strings.TrimPrefix(r.URL.Path, "/v1/file/")
@@ -25,10 +26,9 @@ func RegisterRoutes(dbConnection *gorm.DB, s3Client *s3.Client, bucketName strin
 		}
 		switch r.Method {
 		case http.MethodGet:
-			handlers.GetFileHandler(dbConnection, fileID)(w, r)
+			handlers.GetFileHandler(dbConnection, fileID, client)(w, r)
 		case http.MethodDelete:
-			// Update DeleteFileHandler to accept fileID as a parameter.
-			handlers.DeleteFileHandler(dbConnection, s3Client, bucketName, fileID)(w, r)
+			handlers.DeleteFileHandler(dbConnection, s3Client, bucketName, fileID, client)(w, r)
 		default:
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		}
