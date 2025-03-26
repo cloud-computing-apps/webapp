@@ -20,7 +20,7 @@ func init() {
 func main() {
 	stats, err := statsd.New("127.0.0.1:8125")
 	if err != nil {
-		log.Fatal("Could not connect to StatsD: %v", err)
+		log.Fatal("Could not connect to StatsD:", err)
 	}
 	defer stats.Close()
 

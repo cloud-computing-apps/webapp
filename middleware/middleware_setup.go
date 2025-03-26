@@ -43,7 +43,7 @@ func WrapS3Call(statsdClient *statsd.Client, s3CallName string, s3CallFunc func(
 	durationMs := time.Since(startTime).Milliseconds()
 	metricName := "s3." + s3CallName + ".latency"
 	if err2 := statsdClient.Timing(metricName, time.Duration(durationMs)*time.Millisecond, nil, 1); err2 != nil {
-		log.Error("Error sending S3 timing metric: %v", err2)
+		log.Errorf("Error sending S3 timing metric: %v", err2)
 	}
 	return err
 }
