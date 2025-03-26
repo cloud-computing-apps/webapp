@@ -5,7 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/joho/godotenv"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"os"
 
 	"gorm.io/driver/postgres"
@@ -18,7 +18,7 @@ var S3Bucket string
 func DBConn() *gorm.DB {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env file found. Using system environment variables.")
+		log.Debug("No .env file found. Using system environment variables.")
 	}
 	host := os.Getenv("DB_HOST")
 	user := os.Getenv("DB_USER")
@@ -30,29 +30,29 @@ func DBConn() *gorm.DB {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Failed to connect to the database: %v", err)
+		log.Fatal("Failed to connect to the database: %v", err)
 	}
-	log.Println("Connected to the database!")
+	log.Info("Connected to the database!")
 	return db
 }
 
 func S3Conn() *s3.Client {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env file found. Using system environment variables.")
+		log.Debug("No .env file found. Using system environment variables.")
 	}
 
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
-		log.Fatalf("Failed to load AWS config: %v", err)
+		log.Fatal("Failed to load AWS config: %v", err)
 	}
 
 	S3Bucket = os.Getenv("S3_BUCKET")
 	if S3Bucket == "" {
-		log.Fatalf("S3_BUCKET is not set in the environment")
+		log.Fatal("S3_BUCKET is not set in the environment")
 	}
 
 	S3Client = s3.NewFromConfig(cfg)
-	log.Println("Connected to S3!")
+	log.Info("Connected to S3!")
 	return S3Client
 }
