@@ -14,14 +14,14 @@ func MetricMiddleware(statsdClient *statsd.Client, next http.Handler) http.Handl
 		timerMetricName := "api." + r.Method + "_" + r.URL.Path + ".latency"
 
 		if err := statsdClient.Incr(counterMetricName, nil, 1); err != nil {
-			log.Error("Error sending counter metric: %v", err)
+			log.Errorf("Error sending counter metric: %v", err)
 		}
 
 		metrics := httpsnoop.CaptureMetrics(next, w, r)
 		latencyMs := metrics.Duration.Milliseconds()
 
 		if err := statsdClient.Timing(timerMetricName, time.Duration(latencyMs)*time.Millisecond, nil, 1); err != nil {
-			log.Error("Error sending timing metric: %v", err)
+			log.Errorf("Error sending timing metric: %v", err)
 		}
 	})
 }
@@ -32,7 +32,7 @@ func WrapDBQuery(statsdClient *statsd.Client, queryName string, queryFunc func()
 	durationMs := time.Since(startTime).Milliseconds()
 	metricName := "db." + queryName + ".latency"
 	if err2 := statsdClient.Timing(metricName, time.Duration(durationMs)*time.Millisecond, nil, 1); err2 != nil {
-		log.Error("Error sending DB timing metric: %v", err2)
+		log.Errorf("Error sending DB timing metric: %v", err2)
 	}
 	return err
 }

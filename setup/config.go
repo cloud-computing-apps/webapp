@@ -30,7 +30,7 @@ func DBConn() *gorm.DB {
 
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatal("Failed to connect to the database: %v", err)
+		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 	log.Info("Connected to the database!")
 	return db
@@ -44,7 +44,7 @@ func S3Conn() *s3.Client {
 
 	cfg, err := config.LoadDefaultConfig(context.TODO())
 	if err != nil {
-		log.Fatal("Failed to load AWS config: %v", err)
+		log.Fatalf("Failed to load AWS config: %v", err)
 	}
 
 	S3Bucket = os.Getenv("S3_BUCKET")
