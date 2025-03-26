@@ -1,8 +1,8 @@
 package db
 
 import (
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-	"log"
 )
 
 func InitDB(dbConnection *gorm.DB) {
@@ -10,5 +10,5 @@ func InitDB(dbConnection *gorm.DB) {
 	if err != nil {
 		log.Fatalf("Failed to migrate database schema: %v", err)
 	}
-	log.Println("Database migrated successfully!")
+	log.Info("Database migrated successfully!")
 }

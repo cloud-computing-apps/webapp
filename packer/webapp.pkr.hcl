@@ -44,6 +44,15 @@ build {
   }
 
   provisioner "file" {
+    source      = "config.json"
+    destination = "/tmp/config.json"
+  }
+
+  provisioner "shell" {
+    script = "./scripts/install_cloudwatch.sh"
+  }
+
+  provisioner "file" {
     source      = "webapp"
     destination = "/tmp/webapp"
   }

@@ -1,7 +1,7 @@
 [Unit]
 Description=Webapp Service
 After=network.target
-ConditionPathExists=/tmp/webapp.flag
+ConditionPathExists=/opt/webapp.flag
 
 [Service]
 EnvironmentFile=/etc/environment
@@ -11,6 +11,10 @@ RestartSec=60
 User=csye6225
 Group=csye6225
 WorkingDirectory=/opt/csye6225/
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=webapp
 
 [Install]
 WantedBy=multi-user.target
