@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"github.com/DataDog/datadog-go/statsd"
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"log"
@@ -46,10 +47,20 @@ func TestDBConnection(t *testing.T) {
 	mockDB = &db.GormDatabase{DB: mdb}
 }
 
+func newTestStatsdClient(t *testing.T) *statsd.Client {
+	client, err := statsd.New("127.0.0.1:8125", statsd.WithoutTelemetry())
+	if err != nil {
+		t.Fatalf("Failed to create statsd client: %v", err)
+	}
+	return client
+}
+
 func TestHealthCheckHandler_Success(t *testing.T) {
 	TestDBConnection(t)
 	_ = mockDB.Create(&db.HealthCounter{})
-	handler := handlers.HealthCheckHandler(mockDB)
+	client := newTestStatsdClient(t)
+	defer client.Close()
+	handler := handlers.HealthCheckHandler(mockDB, client)
 
 	req, _ := http.NewRequest("GET", "/healthz", nil)
 	resp := httptest.NewRecorder()
@@ -60,9 +71,11 @@ func TestHealthCheckHandler_Success(t *testing.T) {
 
 func TestHealthCheckHandler_Failure(t *testing.T) {
 	TestDBConnection(t)
+	client := newTestStatsdClient(t)
+	defer client.Close()
 	gormDB := mockDB.(*db.GormDatabase).DB
 	gormDB.Exec("DROP TABLE health_counters;")
-	handler := handlers.HealthCheckHandler(mockDB)
+	handler := handlers.HealthCheckHandler(mockDB, client)
 
 	req, _ := http.NewRequest("GET", "/healthz", nil)
 	resp := httptest.NewRecorder()
@@ -73,7 +86,9 @@ func TestHealthCheckHandler_Failure(t *testing.T) {
 
 func TestHealthCheckHandler_405Failure(t *testing.T) {
 	TestDBConnection(t)
-	handler := handlers.HealthCheckHandler(mockDB)
+	client := newTestStatsdClient(t)
+	defer client.Close()
+	handler := handlers.HealthCheckHandler(mockDB, client)
 
 	req, _ := http.NewRequest("POST", "/healthz", nil)
 	resp := httptest.NewRecorder()
@@ -84,7 +99,9 @@ func TestHealthCheckHandler_405Failure(t *testing.T) {
 
 func TestHealthCheckHandler_ContentLen(t *testing.T) {
 	TestDBConnection(t)
-	handler := handlers.HealthCheckHandler(mockDB)
+	client := newTestStatsdClient(t)
+	defer client.Close()
+	handler := handlers.HealthCheckHandler(mockDB, client)
 	req, _ := http.NewRequest("GET", "/healthz", strings.NewReader("abc"))
 	resp := httptest.NewRecorder()
 
@@ -94,7 +111,9 @@ func TestHealthCheckHandler_ContentLen(t *testing.T) {
 
 func TestHealthCheckHandler_QueryParam(t *testing.T) {
 	TestDBConnection(t)
-	handler := handlers.HealthCheckHandler(mockDB)
+	client := newTestStatsdClient(t)
+	defer client.Close()
+	handler := handlers.HealthCheckHandler(mockDB, client)
 	req, _ := http.NewRequest("GET", "/healthz?test", nil)
 	resp := httptest.NewRecorder()
 
