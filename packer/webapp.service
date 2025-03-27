@@ -12,8 +12,8 @@ User=csye6225
 Group=csye6225
 WorkingDirectory=/opt/csye6225/
 
-StandardOutput=syslog
-StandardError=syslog
+StandardOutput=append:/var/log/webapp.log
+StandardError=append:/var/log/webapp.log
 SyslogIdentifier=webapp
 
 [Install]
