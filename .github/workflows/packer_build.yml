@@ -52,6 +52,12 @@ jobs:
           echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}" >> ~/.aws/credentials
           echo "[profile dev]" > ~/.aws/config
           echo "region=${{ secrets.AWS_REGION }}" >> ~/.aws/config
+          
+          echo "[demo]" > ~/.aws/credentials
+          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}" >> ~/.aws/credentials
+          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}" >> ~/.aws/credentials
+          echo "[profile demo]" > ~/.aws/config
+          echo "region=${{ secrets.AWS_REGION }}" >> ~/.aws/config
 
       - name: 'Build Dependencies'
         run: go mod tidy
@@ -76,6 +82,7 @@ jobs:
           packer build .
 
       - name: 'Share image to Demo Account AWS'
+        id: share_ami_id
         run: |
           IMAGE_ID=$(aws ec2 describe-images \
               --profile dev \
@@ -84,13 +91,73 @@ jobs:
               --output text)
           
           echo "Latest AMI ID: $IMAGE_ID"
+          echo "::set-output name=lt_id::$LAUNCH_TEMPLATE_ID"
           
           aws ec2 modify-image-attribute \
               --profile dev \
               --image-id $IMAGE_ID  \
               --launch-permission "Add=[{UserId=${{ secrets.AWS_DEMO_ACCOUNT }}}]"
+
+      - name: 'Fetch Launch Template'
+        id: fetch_lt_id
+        run: |
+          LAUNCH_TEMPLATE_ID=$(aws ec2 describe-launch-templates \
+              --profile demo
+              --filters "Name=launch-template-name,Values=csye6225-asg-*" \
+              --query "LaunchTemplates[0].LaunchTemplateId" \
+              --output text)
+            echo "Launch Template ID: $LAUNCH_TEMPLATE_ID"
+            echo "::set-output name=lt_id::$LAUNCH_TEMPLATE_ID"
+
+      - name: 'Create New Launch Template Version'
+        id: create_lt_version
+        run: |          
+          NEW_VERSION=$(aws ec2 create-launch-template-version \
+            --profile demo
+            --launch-template-id ${{ steps.fetch_lt_id.outputs.lt_id }} \
+            --source-version 1 \
+            --version-description "Updated with AMI ${{ steps.share_ami.outputs.ami }}" \
+            --launch-template-data "{\"ImageId\":\"${{ steps.share_ami.outputs.ami }}\"}" \
+            --query 'LaunchTemplateVersion.VersionNumber' \
+            --output text)
+          echo "New launch template version: $NEW_VERSION"
+          echo "::set-output name=lt_version::$NEW_VERSION"
+
+      - name: 'Update Auto Scaling Group'
+        run: |
+          aws autoscaling update-auto-scaling-group \
+            --profile demo
+            --auto-scaling-group-name webapp-asg-vpc-1 \
+            --launch-template "LaunchTemplateId=${{ steps.fetch_lt_id.outputs.lt_id }},Version=${{ steps.create_lt_version.outputs.lt_version }}"
+
+      - name: 'Trigger Instance Refresh'
+        run: |
+          refresh_id=$(aws autoscaling start-instance-refresh \
+            --profile demo
+            --auto-scaling-group-name webapp-asg-vpc-1 \
+            --preferences '{"MinHealthyPercentage":80, "InstanceWarmup":300}'
+            --query 'InstanceRefreshId' --output text)
+            
+          echo "Instance Refresh triggered with ID: $refresh_id"
+        
+          while true; do
+            state=$(aws autoscaling describe-instance-refreshes \
+            --profile demo
+            --auto-scaling-group-name webapp-asg-vpc-1 \
+            --query "InstanceRefreshes[?InstanceRefreshId=='${refresh_id}'].Status" \
+            --output text)
           
-
-
-
+            echo "Current instance refresh status: $state"
+            
+            if [ "$state" = "Successful" ]; then
+              echo "Instance refresh completed successfully."
+              exit 0
+            elif [ "$state" = "Failed" ] || [ "$state" = "Cancelling" ] || [ "$state" = "Cancelled" ]; then
+              echo "Instance refresh failed, was cancelled, or is being cancelled."
+              exit 1
+            else
+              sleep 30
+            fi
+          done
+        shell: bash
 
