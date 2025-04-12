@@ -21,6 +21,10 @@ To run this application on a VM do the following:
 - Run `. app_setup.sh` to execute the script. This will start the application
 - Use Postman or cURL to test the application by hitting `https://demo.nidhikulkarni.me/healthz`
 
+## Instruction to build the Go app
+
+    go build -o webapp main.go
+
 ## Import SSL Certificate
 
 - Get your certificate from namecheap or any other registrar
