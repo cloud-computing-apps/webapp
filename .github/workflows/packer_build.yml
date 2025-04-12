@@ -108,9 +108,10 @@ jobs:
         id: fetch_lt_id
         run: |
           LAUNCH_TEMPLATE_ID=$(aws ec2 describe-launch-templates \
-              --profile demo
+              --profile demo \
               --filters "Name=launch-template-name,Values=csye6225-asg-*" \
               --query "LaunchTemplates[0].LaunchTemplateId" \
+              --region ${{ secrets.AWS_REGION }} \
               --output text)
           echo "Launch Template ID: $LAUNCH_TEMPLATE_ID"
           echo "::set-output name=lt_id::$LAUNCH_TEMPLATE_ID"
@@ -119,12 +120,13 @@ jobs:
         id: create_lt_version
         run: |          
           NEW_VERSION=$(aws ec2 create-launch-template-version \
-            --profile demo
+            --profile demo \
             --launch-template-id ${{ steps.fetch_lt_id.outputs.lt_id }} \
             --source-version 1 \
             --version-description "Updated with AMI ${{ steps.share_ami.outputs.ami }}" \
             --launch-template-data "{\"ImageId\":\"${{ steps.share_ami.outputs.ami }}\"}" \
             --query 'LaunchTemplateVersion.VersionNumber' \
+            --region ${{ secrets.AWS_REGION }} \
             --output text)
           echo "New launch template version: $NEW_VERSION"
           echo "::set-output name=lt_version::$NEW_VERSION"
@@ -132,26 +134,29 @@ jobs:
       - name: 'Update Auto Scaling Group'
         run: |
           aws autoscaling update-auto-scaling-group \
-            --profile demo
+            --profile demo \
             --auto-scaling-group-name webapp-asg-vpc-1 \
+            --region ${{ secrets.AWS_REGION }} \
             --launch-template "LaunchTemplateId=${{ steps.fetch_lt_id.outputs.lt_id }},Version=${{ steps.create_lt_version.outputs.lt_version }}"
 
       - name: 'Trigger Instance Refresh'
         run: |
           refresh_id=$(aws autoscaling start-instance-refresh \
-            --profile demo
+            --profile demo \
             --auto-scaling-group-name webapp-asg-vpc-1 \
             --preferences '{"MinHealthyPercentage":80, "InstanceWarmup":300}' \
             --query 'InstanceRefreshId' \
+            --region ${{ secrets.AWS_REGION }} \
             --output text)
             
           echo "Instance Refresh triggered with ID: $refresh_id"
         
           while true; do
             state=$(aws autoscaling describe-instance-refreshes \
-            --profile demo
+            --profile demo \
             --auto-scaling-group-name webapp-asg-vpc-1 \
             --query "InstanceRefreshes[?InstanceRefreshId=='${refresh_id}'].Status" \
+            --region ${{ secrets.AWS_REGION }} \
             --output text)
           
             echo "Current instance refresh status: $state"
