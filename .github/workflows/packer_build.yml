@@ -97,7 +97,7 @@ jobs:
               --output text)
           
           echo "Latest AMI ID: $IMAGE_ID"
-          echo "::set-output name=lt_id::$LAUNCH_TEMPLATE_ID"
+          echo "::set-output name=ami::$IMAGE_ID"
           
           aws ec2 modify-image-attribute \
               --profile dev \
@@ -123,8 +123,8 @@ jobs:
             --profile demo \
             --launch-template-id ${{ steps.fetch_lt_id.outputs.lt_id }} \
             --source-version 1 \
-            --version-description "Updated with AMI ${{ steps.share_ami.outputs.ami }}" \
-            --launch-template-data "{\"ImageId\":\"${{ steps.share_ami.outputs.ami }}\"}" \
+            --version-description "Updated with AMI ${{ steps.share_ami_id.outputs.ami }}" \
+            --launch-template-data "{\"ImageId\":\"${{ steps.share_ami_id.outputs.ami }}\"}" \
             --query 'LaunchTemplateVersion.VersionNumber' \
             --region ${{ secrets.AWS_REGION }} \
             --output text)
