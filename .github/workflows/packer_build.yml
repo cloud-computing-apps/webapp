@@ -47,17 +47,23 @@ jobs:
       - name: 'Configure AWS CLI'
         run: |
           mkdir -p ~/.aws
-          echo "[dev]" > ~/.aws/credentials
-          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID_DEV }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}" >> ~/.aws/credentials
-          echo "[profile dev]" > ~/.aws/config
-          echo "region=${{ secrets.AWS_REGION }}" >> ~/.aws/config
+          cat <<EOF > ~/.aws/credentials
+          [dev]
+          aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID_DEV }}
+          aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_DEV }}
           
-          echo "[demo]" > ~/.aws/credentials
-          echo "aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}" >> ~/.aws/credentials
-          echo "aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}" >> ~/.aws/credentials
-          echo "[profile demo]" > ~/.aws/config
-          echo "region=${{ secrets.AWS_REGION }}" >> ~/.aws/config
+          [demo]
+          aws_access_key_id=${{ secrets.AWS_ACCESS_KEY_ID_DEMO }}
+          aws_secret_access_key=${{ secrets.AWS_SECRET_ACCESS_KEY_DEMO }}
+          EOF
+          
+          cat <<EOF > ~/.aws/config
+          [profile dev]
+          region=${{ secrets.AWS_REGION }}
+          
+          [profile demo]
+          region=${{ secrets.AWS_REGION }}
+          EOF
 
       - name: 'Build Dependencies'
         run: go mod tidy
