@@ -19,4 +19,16 @@ To run this application on a VM do the following:
 `scp -i <key> ~/Path/To/.zip app_setup.sh  ubuntu@ec2-XX-XXX-XXX-XXX.compute-1.amazonaws.com:/remote/path/`
 - Run `chmod +x app_setup.sh` to make the script executable
 - Run `. app_setup.sh` to execute the script. This will start the application
-- Use Postman or cURL to test the application by hitting `http://<vm_public_ip>:8080/healthz`
+- Use Postman or cURL to test the application by hitting `https://demo.nidhikulkarni.me/healthz`
+
+## Import SSL Certificate
+
+- Get your certificate from namecheap or any other registrar
+- Once you get your certificate sent to you, extract all the keys, you can import the certificate to AWS Certificate Manager by running the below command
+
+      aws acm import-certificate --certificate fileb:///path/to/your/certificate_domain.crt \
+      --private-key fileb:///path/to/your/private.key \
+      --certificate-chain fileb:///path/to/your/certificate-chain_domain.ca-bundle \
+      --region <region> \
+      --profile <your_aws_profile>
+
