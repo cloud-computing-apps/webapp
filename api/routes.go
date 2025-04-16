@@ -15,6 +15,7 @@ func RegisterRoutes(dbConnection *gorm.DB, s3Client *s3.Client, bucketName strin
 	dbInstance := &db.GormDatabase{DB: dbConnection}
 
 	r.HandleFunc("/healthz", handlers.HealthCheckHandler(dbInstance, client))
+	r.HandleFunc("/cicd", handlers.CICDCheckHandler(dbInstance, client))
 
 	r.HandleFunc("/v1/file", handlers.UploadFileHandler(dbInstance, s3Client, bucketName, client))
 
